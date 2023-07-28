@@ -29,8 +29,8 @@ class MLP(torch.nn.Module):
 class DQNAgent(object):
     def __init__(self, q_function, optimizer, replay_buffer, replay_start_size, batch_size, update_period, n_action, gamma=0.9,
                  e_greed=0.1, device=torch.device("cpu")):
-        self.predict_network = q_function
-        self.target_network = copy.deepcopy(q_function)
+        self.predict_network = q_function.to(device)
+        self.target_network = copy.deepcopy(q_function).to(device)
         self.update_period = update_period
 
         self.optimizer = optimizer
@@ -47,9 +47,11 @@ class DQNAgent(object):
 
     # 神经网络输出最佳Action
     def predict(self, obs):
-        obs = torch.FloatTensor(obs).to(self.device)
-        Q_list = self.predict_network(obs)
-        action = int(torch.argmax(Q_list).detach().numpy())
+        # obs = torch.FloatTensor(obs)
+        # Q_list = self.predict_network(obs)
+        # action = int(torch.argmax(Q_list).detach().numpy())
+        state = torch.tensor(np.array([obs]), dtype=torch.float).to(self.device)
+        action = self.predict_network(state).argmax().item()
         return action
 
     # 考虑探索时输出最终Action
@@ -70,19 +72,35 @@ class DQNAgent(object):
         # 当经验池中数据多于指定值时开始训练
         # 每隔固定轮数后训练一次预测网络
         if len(self.replay_buffer) > self.replay_start_size and self.global_step % self.replay_buffer.step == 0:
-            self.batch_learning(*self.replay_buffer.sample(self.batch_size))
+            batch_obs, batch_action, batch_reward, batch_next_obs, batch_done = self.replay_buffer.sample(self.batch_size)
+            transition_dict = {
+                "batch_obs": batch_obs,
+                "batch_action": batch_action,
+                "batch_reward": batch_reward,
+                "batch_next_obs": batch_next_obs,
+                "batch_done": batch_done
+            }
+            self.batch_learning(transition_dict)
         # 每隔固定轮数后更新一次目标网络
         if self.global_step % self.update_period == 0:
             self.sync_target()
 
     # 从经验池中获取一个batch的数据进行训练
-    def batch_learning(self, batch_obs, batch_action, batch_reward, batch_next_obs, batch_done):
-        pred_Vs = self.predict_network(batch_obs)
-        action_onehot = utils.one_hot(batch_action, self.n_action)
-        predict_Q = (pred_Vs * action_onehot).sum(dim=1)
+    def batch_learning(self, transition_dict):
+        batch_obs = torch.FloatTensor(transition_dict["batch_obs"]).to(self.device)
+        batch_action = torch.tensor(transition_dict["batch_action"], dtype=torch.int64).view(-1, 1).to(self.device)
+        batch_reward = torch.FloatTensor(transition_dict["batch_reward"]).to(self.device)
+        batch_next_obs = torch.FloatTensor(transition_dict["batch_next_obs"]).to(self.device)
+        batch_done = torch.tensor(transition_dict['batch_done'], dtype=torch.float).view(-1, 1).to(self.device)
 
-        next_pred_Vs = self.target_network(batch_next_obs)
-        best_V = next_pred_Vs.max(1)[0]
+        # Only-in CPU
+        # predict_Vs = self.predict_network(batch_obs)  # Tensor(32,2)
+        # action_one_hot = utils.one_hot(batch_action, self.n_action).to(self.device)
+        # predict_Q = (predict_Vs * action_one_hot).sum(dim=1).to(self.device)
+        predict_Q = self.predict_network(batch_obs).gather(1, batch_action)
+
+        next_predict_Vs = self.target_network(batch_next_obs)
+        best_V = next_predict_Vs.max(1)[0].view(-1, 1)
         target_Q = batch_reward + (1 - batch_done) * self.gamma * best_V
 
         # 梯度下降更新参数
@@ -93,5 +111,6 @@ class DQNAgent(object):
 
     # 将预测网络的参数更新至目标网络
     def sync_target(self):
-        for target_param, param in zip(self.target_network.parameters(), self.predict_network.parameters()):
-            target_param.data.copy_(param.data)
+        # for target_param, param in zip(self.target_network.parameters(), self.predict_network.parameters()):
+        #     target_param.data.copy_(param.data)
+        self.target_network.load_state_dict(self.predict_network.state_dict())

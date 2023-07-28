@@ -59,7 +59,7 @@ class TrainManager:
             next_obs, reward, done, _, _ = self.env.step(action)
             total_reward += reward
             obs = next_obs
-            # self.env.render()
+            self.env.render()
             if done:
                 break
         return total_reward
@@ -67,8 +67,6 @@ class TrainManager:
     def train(self):
         for e in range(self.episodes):
             episode_reward = self.train_episode()
-            # print(f"Episode {e}: Reward={episode_reward}")
-            # if e % 10 == 0:
             writer.add_scalar(
                 tag="reward",  # 可以暂时理解为图像的名字
                 scalar_value=episode_reward,  # 纵坐标的值
@@ -81,8 +79,8 @@ class TrainManager:
 
 
 if __name__ == '__main__':
-    # env1 = gym.make("CartPole-v1", render_mode="human")
-    env1 = gym.make("CartPole-v1")
+    env1 = gym.make("CartPole-v1", render_mode="rgb_array")
+    # env1 = gym.make("CartPole-v1")
     tm = TrainManager(
         env=env1
     )

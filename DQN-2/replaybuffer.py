@@ -24,11 +24,11 @@ class ReplayBuffer:
     def sample(self, batch_size):
         mini_batch = random.sample(self.buffer, batch_size)  # 一致性采样
         obs_batch, action_batch, reward_batch, next_obs_batch, done_batch = zip(*mini_batch)
-        obs_batch = FloatTensor(np.array(obs_batch))
-        action_batch = FloatTensor(np.array(action_batch))
-        reward_batch = FloatTensor(np.array(reward_batch))
-        next_obs_batch = FloatTensor(np.array(next_obs_batch))
-        done_batch = FloatTensor(np.array(done_batch))
+        obs_batch = np.array(obs_batch)
+        action_batch = np.array(action_batch)
+        reward_batch = np.array(reward_batch)
+        next_obs_batch = np.array(next_obs_batch)
+        done_batch = np.array(done_batch)
         return obs_batch, action_batch, reward_batch, next_obs_batch, done_batch
 
     def __len__(self):
