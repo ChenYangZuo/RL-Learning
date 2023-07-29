@@ -1,6 +1,6 @@
 # Readme
 
-新增目标网络，添加了CUDA支持
+设计DDQN框架
 
 ## Environment
 

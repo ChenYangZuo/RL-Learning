@@ -79,8 +79,8 @@ class TrainManager:
 
 
 if __name__ == '__main__':
-    # env1 = gym.make("CartPole-v1", render_mode="rgb_array")
-    env1 = gym.make("CartPole-v1")
+    env1 = gym.make("CartPole-v1", render_mode="rgb_array")
+    # env1 = gym.make("CartPole-v1")
     tm = TrainManager(
         env=env1
     )
