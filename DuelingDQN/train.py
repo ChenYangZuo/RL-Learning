@@ -46,6 +46,8 @@ class TrainManager:
             next_obs, reward, done, _, _ = self.env.step(action)
             self.agent.learning(obs, action, reward, next_obs, done)
             total_reward += reward
+            if total_reward == 200:
+                done = True
             obs = next_obs
             if done:
                 break
@@ -58,6 +60,8 @@ class TrainManager:
             action = self.agent.predict(obs)
             next_obs, reward, done, _, _ = self.env.step(action)
             total_reward += reward
+            if total_reward == 200:
+                done = True
             obs = next_obs
             self.env.render()
             if done:
@@ -80,6 +84,8 @@ class TrainManager:
 
 if __name__ == '__main__':
     env1 = gym.make("CartPole-v1", render_mode="rgb_array")
+    # print(env1.spec.max_episode_steps)
+    # print(env1.spec.reward_threshold)
     # env1 = gym.make("CartPole-v1")
     tm = TrainManager(
         env=env1
