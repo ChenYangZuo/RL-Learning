@@ -19,7 +19,7 @@ def array_to_int(state, size=7):
     return state[0] * size + state[1]
 
 
-class FrozenLake_v2(Env):
+class FrozenLake_v2:
     def __init__(self):
         self.rows = 8  # 8行
         self.cols = 8  # 8列
@@ -29,7 +29,6 @@ class FrozenLake_v2(Env):
         self.hole = [[2, 3], [3, 5], [4, 3], [5, 1], [5, 2], [6, 1], [6, 4], [6, 6], [7, 3]]
         self.current_state = self.start
         self.action_space = spaces.Discrete(4)
-        # self.observation_space = spaces.Box(low=np.array([0, 0]), high=np.array([self.rows, self.cols]))
         self.observation_space = spaces.Discrete(self.rows * self.cols)
 
     def step(self, action):

@@ -7,7 +7,8 @@
 """
 
 import gymnasium as gym
-from torch.utils.tensorboard import SummaryWriter\
+from torch.utils.tensorboard import SummaryWriter
+import math
 
 from env import FrozenLake_v2
 
@@ -21,6 +22,7 @@ class TrainManager:
 
         self.env = env
         self.episodes = episodes
+        self.episodes_step = 0
 
         n_obs = env.observation_space.n
         n_act = env.action_space.n
@@ -33,19 +35,17 @@ class TrainManager:
             n_action=n_act
         )
 
-    def train_episode(self):
+    def train_episode(self, mode=0):
         total_reward = 0
         obs, _ = self.env.reset()
         for step in range(99):
-            # steps.append(obs)
             action = self.agent.action(obs)
-            # actions.append(action)
             next_obs, reward, done, _, _ = self.env.step(action)
-            self.agent.learning(obs, action, reward, next_obs)
+            self.agent.epsilon = 0.1 * math.exp(-1. * self.episodes_step / 2000)  # 动态修改探索率
+            self.agent.learning(obs, action, reward, next_obs, mode)
             total_reward += reward
             obs = next_obs
-            # if reward == -100:
-            #     done = True
+            self.episodes_step += 1
             if done:
                 break
         return total_reward
@@ -59,21 +59,26 @@ class TrainManager:
             next_obs, reward, done, _, _ = self.env.step(action)
             total_reward += reward
             obs = next_obs
-            # if reward == -100:
-            #     done = True
             if done:
                 break
         return total_reward
 
-    def train(self):
+    def train(self, mode=0):
         for e in range(self.episodes):
-            episode_reward = self.train_episode()
+            episode_reward = self.train_episode(mode)
             print(f"{e} - {episode_reward}")
-            writer.add_scalar(
-                tag="reward",
-                scalar_value=episode_reward,
-                global_step=e
-            )
+            if mode == 0:
+                writer.add_scalar(
+                    tag="reward_q",
+                    scalar_value=episode_reward,
+                    global_step=e
+                )
+            else:
+                writer.add_scalar(
+                    tag="reward_ant",
+                    scalar_value=episode_reward,
+                    global_step=e
+                )
             # if e % 50 == 0:
             #     test_reward = self.test_episode()
             #     print(f"Test Reward: {test_reward}")
@@ -83,9 +88,17 @@ if __name__ == '__main__':
     # env1 = gym.make("CliffWalking-v0")
     # env1 = gym.make("FrozenLake8x8-v1", desc=None, map_name="8x8", is_slippery=False)
     env2 = FrozenLake_v2()
+
     tm = TrainManager(
         env=env2
     )
-    tm.train()
+    tm.train(mode=0)
     print("-"*20)
+    tm.test_episode()
+
+    tm = TrainManager(
+        env=env2
+    )
+    tm.train(mode=1)
+    print("-" * 20)
     tm.test_episode()
