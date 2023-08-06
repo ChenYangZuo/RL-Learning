@@ -12,6 +12,7 @@ import random
 
 class QLearning:
     """ Q-learning算法 """
+
     def __init__(self, epsilon, alpha, gamma, n_state, n_action):
         self.Q_table = np.zeros([n_state, n_action])  # 初始化Q(s,a)表格
         self.tau_table = np.zeros([n_state, n_state])  # 初始化tau(s,s)表格
@@ -19,6 +20,7 @@ class QLearning:
         self.alpha = alpha  # 学习率
         self.gamma = gamma  # 折扣因子
         self.epsilon = epsilon  # 贪婪策略中的参数
+        self.temperature = 100
         random.seed(0)
 
     def predict(self, state):
@@ -36,6 +38,16 @@ class QLearning:
             action = self.predict(state)
         return action
 
+    def action_SA(self, state):
+        action_r = np.random.randint(self.n_action)
+        action_m = self.predict(state)
+        delta = np.random.random()
+        if delta > (self.Q_table[state, action_r] - self.Q_table[state, action_m]) / self.temperature:
+            return action_m
+        else:
+            return action_r
+        pass
+
     def best_action(self, state):  # 用于打印策略
         Q_max = np.max(self.Q_table[state])
         a = [0 for _ in range(self.n_action)]
@@ -46,8 +58,8 @@ class QLearning:
 
     def learning(self, s0, a0, r, s1, mode=0):
         td_error = r + self.gamma * self.Q_table[s1].max() - self.Q_table[s0, a0]
-        if mode != 0:  # 信息素机制
-            self.tau_table[s0, s1] += r / 99
+        if mode == 1:  # 信息素机制
+            self.tau_table[s0, s1] = 0.9 * self.tau_table[s0, s1] + (r / 999)
             self.Q_table[s0, a0] += self.alpha * (td_error + self.tau_table[s0, s1])
         else:  # 原始Q-Learning
             self.Q_table[s0, a0] += self.alpha * td_error

@@ -21,8 +21,8 @@ def array_to_int(state, size=7):
 
 class FrozenLake_v2:
     def __init__(self):
-        self.rows = 8  # 8行
-        self.cols = 8  # 8列
+        self.rows = 20  # 8行
+        self.cols = 20  # 8列
         self.start = [0, 0]
         self.end = [7, 7]
         # 左行右列
@@ -32,6 +32,7 @@ class FrozenLake_v2:
         self.observation_space = spaces.Discrete(self.rows * self.cols)
 
     def step(self, action):
+        current_state = deepcopy(self.current_state)
         new_state = deepcopy(self.current_state)
         if action == 0:  # Move left
             new_state[1] = max(self.current_state[1] - 1, 0)
@@ -46,8 +47,9 @@ class FrozenLake_v2:
         self.current_state = new_state
 
         if new_state in self.hole:  # 掉到洞里
-            done = True
-            reward = -100
+            self.current_state = current_state
+            done = False
+            reward = -10
         elif new_state == self.end:  # 到达终点
             done = True
             reward = 100
