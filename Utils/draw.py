@@ -11,13 +11,25 @@ import numpy as np
 import csv
 
 
+def smooth_data(data, smooth):
+    if smooth >= 1 or smooth < 0:
+        raise ValueError("The smooth parameter must be greater than 0 and not greater than 1")
+    last = data[0]
+    smoothed = []
+    for point in data:
+        smoothed_val = last * smooth + (1 - smooth) * point
+        smoothed.append(smoothed_val)
+        last = smoothed_val
+    return smoothed
+
+
 def plot_single_data(data):
     if 'data_x' not in data or 'data_y' not in data or 'label' not in data:
         raise ValueError("Invalid data format. Input dictionary should contain 'data_x', 'data_y', and 'label' keys.")
     plt.plot(data['data_x'], data['data_y'], label=data['label'])
 
 
-def draw_linechart(data, label_x, label_y, title, smooth=0.0):
+def draw_linechart(data, label_x, label_y, title):
     if isinstance(data, list):  # 输入是一族数据
         for d in data:
             plot_single_data(d)
@@ -61,18 +73,20 @@ if __name__ == '__main__':
 
     x_data = list(range(len(q_y_data)))
 
-    data = [{
+    data_smooth = 0.6
+
+    list_data = [{
         'data_x': x_data,
-        'data_y': q_y_data,
+        'data_y': smooth_data(q_y_data, data_smooth),
         'label': 'Q-Learning'
     }, {
         'data_x': x_data,
-        'data_y': ant_y_data,
+        'data_y': smooth_data(ant_y_data, data_smooth),
         'label': 'Q-Learning With Ant'
     }, {
         'data_x': x_data,
-        'data_y': sa_y_data,
+        'data_y': smooth_data(sa_y_data, data_smooth),
         'label': 'Q-Learning With SA'
     }]
-    draw_linechart(data, "x", "y", "test", 0)
+    draw_linechart(list_data, "x", "y", "test")
 
