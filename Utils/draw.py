@@ -9,6 +9,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import csv
+import time
 
 
 def smooth_data(data, smooth):
@@ -39,6 +40,7 @@ def draw_linechart(data, label_x, label_y, title):
     plt.xlabel(label_x)
     plt.ylabel(label_y)
     plt.title(title)
+    plt.savefig(f"{time.time()}.png", dpi=300)
     plt.show()
 
 
