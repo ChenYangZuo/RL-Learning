@@ -18,11 +18,12 @@ writer = SummaryWriter(log_dir='runs/train_data')
 
 
 class TrainManager:
-    def __init__(self, env, episodes=1000, alpha=0.1, gamma=0.9, e_greed=0.1):
+    def __init__(self, env, episodes=2000, alpha=0.1, gamma=0.9, e_greed=0.1, max_step=120):
 
         self.env = env
         self.episodes = episodes
         self.episodes_step = 0
+        self.max_step = max_step
 
         n_obs = env.observation_space.n
         n_act = env.action_space.n
@@ -39,7 +40,7 @@ class TrainManager:
         total_reward = 0
         count = 0
         obs, _ = self.env.reset()
-        for step in range(300):
+        for step in range(self.max_step):
             if mode == 0:
                 action = self.agent.action(obs)
             elif mode == 2:
@@ -125,7 +126,7 @@ if __name__ == '__main__':
                  [12, 9], [12, 10], [12, 12], [12, 15], [12, 17], [13, 6], [13, 10], [13, 14], [13, 18], [14, 1],
                  [14, 4], [14, 5], [14, 7], [14, 11], [14, 14], [14, 18], [14, 19], [15, 2], [15, 6], [15, 8], [16, 2],
                  [16, 4], [16, 8], [16, 11], [16, 12], [16, 14], [16, 16], [16, 17], [17, 2], [17, 4], [17, 12],
-                 [17, 14], [18, 5], [18, 6], [18, 8], [18, 16], [18, 17], [18, 19], [19, 3], [19, 6], [19, 7], [19, 15]]
+                 [17, 14], [18, 6], [18, 8], [18, 16], [18, 17], [18, 19], [19, 3], [19, 6], [19, 7], [19, 15]]
     env2.start = [19, 0]
     env2.end = [0, 19]
 
@@ -134,18 +135,18 @@ if __name__ == '__main__':
     )
     tm.train(mode=0)
     print("-" * 20)
-    tm.test_episode()
+    # tm.test_episode()
 
     tm = TrainManager(
         env=env2
     )
     tm.train(mode=1)
     print("-" * 20)
-    tm.test_episode()
+    # tm.test_episode()
 
     tm = TrainManager(
         env=env2
     )
     tm.train(mode=2)
     print("-" * 20)
-    tm.test_episode()
+    # tm.test_episode()
